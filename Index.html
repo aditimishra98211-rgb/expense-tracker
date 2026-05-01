@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExpenseIQ — Premium Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- ── HEADER ── -->
+    <header>
+      <div class="logo">
+        <div class="logo-icon">💎</div>
+        <div>
+          <h1>ExpenseIQ</h1>
+          <span>Premium Tracker</span>
+        </div>
+      </div>
+
+      <div class="month-selector">
+        <button class="month-btn" id="prevMonth">‹</button>
+        <span class="current-month" id="monthDisplay"></span>
+        <button class="month-btn" id="nextMonth">›</button>
+      </div>
+
+      <div class="header-date">
+        <strong id="todayDate"></strong>
+        <span><span class="live-dot"></span>Live Tracking</span>
+      </div>
+    </header>
+
+    <!-- ── STAT CARDS ── -->
+    <div class="stats-grid">
+      <div class="stat-card accent-red">
+        <div class="stat-label">Total Spent</div>
+        <div class="stat-value" id="totalSpent">₹0</div>
+        <div class="stat-sub" id="spentSub">This month</div>
+        <div class="stat-icon">💸</div>
+      </div>
+      <div class="stat-card accent-green">
+        <div class="stat-label">Transactions</div>
+        <div class="stat-value" id="totalTrans">0</div>
+        <div class="stat-sub">Expenses recorded</div>
+        <div class="stat-icon">📊</div>
+      </div>
+      <div class="stat-card accent-gold">
+        <div class="stat-label">Avg per Day</div>
+        <div class="stat-value" id="avgDay">₹0</div>
+        <div class="stat-sub" id="avgSub">Daily average</div>
+        <div class="stat-icon">📅</div>
+      </div>
+      <div class="stat-card accent-purple">
+        <div class="stat-label">Top Category</div>
+        <div class="stat-value top-cat-val" id="topCat">—</div>
+        <div class="stat-sub" id="topCatSub">Highest spending</div>
+        <div class="stat-icon">🏆</div>
+      </div>
+    </div>
+
+    <!-- ── CHARTS ROW ── -->
+    <div class="charts-row">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Monthly Trend</div>
+          <span class="panel-badge">6 Months</span>
+        </div>
+        <div class="panel-body chart-pad">
+          <div class="chart-wrap">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">By Category</div>
+          <span class="panel-badge">Breakdown</span>
+        </div>
+        <div class="panel-body chart-pad">
+          <div class="chart-wrap">
+            <canvas id="doughnutChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MAIN GRID ── -->
+    <div class="main-grid">
+
+      <!-- LEFT: Transactions -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Transactions</div>
+          <button class="btn-clear" onclick="clearAll()">Clear All</button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all"           onclick="setFilter(this)">All</button>
+          <button class="filter-btn" data-filter="food"          onclick="setFilter(this)">🍔 Food</button>
+          <button class="filter-btn" data-filter="transport"     onclick="setFilter(this)">🚗 Travel</button>
+          <button class="filter-btn" data-filter="shopping"      onclick="setFilter(this)">🛍️ Shop</button>
+          <button class="filter-btn" data-filter="health"        onclick="setFilter(this)">💊 Health</button>
+          <input class="filter-search" type="text" placeholder="🔍 Search…" id="searchInput" oninput="renderList()" />
+        </div>
+
+        <div class="trans-list" id="transList">
+          <div class="empty-state">
+            <div class="empty-emoji">✨</div>
+            <p>No expenses yet.<br>Add your first one!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Form + Breakdown -->
+      <div class="right-col">
+
+        <!-- Add Expense -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Add Expense</div>
+          </div>
+          <div class="panel-body">
+
+            <div class="form-section-label">Category</div>
+            <div class="cat-pills" id="catPills">
+              <button class="cat-pill active" data-cat="food"          style="--cc:#e08c52;--cbg:rgba(224,140,82,.12)" onclick="selectCat(this)">🍔 Food</button>
+              <button class="cat-pill"        data-cat="transport"     style="--cc:#4a9edd;--cbg:rgba(74,158,221,.12)" onclick="selectCat(this)">🚗 Transport</button>
+              <button class="cat-pill"        data-cat="shopping"      style="--cc:#d85e8b;--cbg:rgba(216,94,139,.12)" onclick="selectCat(this)">🛍️ Shopping</button>
+              <button class="cat-pill"        data-cat="health"        style="--cc:#3ecf8e;--cbg:rgba(62,207,142,.12)" onclick="selectCat(this)">💊 Health</button>
+              <button class="cat-pill"        data-cat="entertainment" style="--cc:#9b72e8;--cbg:rgba(155,114,232,.12)" onclick="selectCat(this)">🎬 Fun</button>
+              <button class="cat-pill"        data-cat="education"     style="--cc:#3ec8c8;--cbg:rgba(62,200,200,.12)" onclick="selectCat(this)">📚 Study</button>
+              <button class="cat-pill"        data-cat="bills"         style="--cc:#f0c040;--cbg:rgba(240,192,64,.12)"  onclick="selectCat(this)">⚡ Bills</button>
+              <button class="cat-pill"        data-cat="other"         style="--cc:#8a9bb0;--cbg:rgba(138,155,176,.12)" onclick="selectCat(this)">📌 Other</button>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="desc">Description</label>
+                <input type="text" id="desc" placeholder="e.g. Lunch at Haldirams" maxlength="40" />
+              </div>
+              <div class="form-group">
+                <label for="amount">Amount (₹)</label>
+                <input type="number" id="amount" placeholder="0.00" min="0" step="0.01" />
+              </div>
+              <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" />
+              </div>
+              <div class="form-group">
+                <label for="mode">Payment Mode</label>
+                <select id="mode">
+                  <option value="UPI">UPI</option>
+                  <option value="Card">Card</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Net Banking">Net Banking</option>
+                  <option value="Wallet">Wallet</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label for="note">Note (optional)</label>
+                <textarea id="note" placeholder="Any details…"></textarea>
+              </div>
+            </div>
+
+            <button class="btn-add" onclick="addExpense()">+ Add Expense</button>
+          </div>
+        </div>
+
+        <!-- Category Breakdown -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Spending by Category</div>
+          </div>
+          <div class="panel-body" id="catBreakdown">
+            <div class="no-data-msg">No data yet</div>
+          </div>
+        </div>
+
+      </div><!-- /right-col -->
+    </div><!-- /main-grid -->
+
+  </div><!-- /app -->
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
